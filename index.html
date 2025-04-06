@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body >
+    <div id="root"></div>
+  </body>
+  <script type="text/babel">
+    const { useState } = React;
+    //Header
+    function Header() {
+      const [toggle,setToggle]=useState("light");
+      const handleChange=(e)=>{
+        e.preventDefault();
+        let key=localStorage.getItem("key")||[];
+        if(e.target.name==="light"){
+
+            setToggle("dark");
+
+
+
+        }else if(e.target.name==="dark"){
+            setToggle("light");
+        }
+        localStorage.setItem("key",toggle);
+
+      }
+
+      return (
+        <header>
+          <a href="#">Home</a>
+          <a href="#">About</a>
+          <a href="#">Form</a>
+         
+          <button  id={toggle} onClick={handleChange} name={toggle}>{toggle}</button>
+        </header>
+      );
+    }
+     
+
+
+
+
+    //FeedbackItem
+
+
+
+    function FeedbackItem(){
+        let [items,setItem]=useState([]);
+        let res= fetch("https://feedback-board-51848-default-rtdb.firebaseio.com/feedback.json",{
+            method:"GET",
+
+            headers:{
+                "Content-Type": " application/json"
+            }
+        })
+        .then((res)=>res.json())
+        .then(data=>{
+            // console.log(Object.entries(data));
+            if(data!==null){
+                setItem(Object.entries(data))
+            }
+           
+           
+        })
+        
+        const hangleDelete=(id)=>{
+           let update=fetch(`https://feedback-board-51848-default-rtdb.firebaseio.com/feedback/${id}.json`,{
+               method:"DELETE",
+               headers:{
+                "Content-Type": " application/json"
+            }
+           })
+           alert("FeedBack Deleted Successfully");
+        }
+
+        return (
+        <div id="cards">
+
+            <h1>FeedBack Items</h1>
+            <div id="conatiner2">
+            {
+                items.map((item)=>(
+                    <div key={item[0]} className="card">
+                      <h2>Name: {item[1].name}</h2>
+                      <p>Email: {item[1].email}</p>
+                      <p>Comment: {item[1].feedback}</p>   
+                      <button onClick={()=>hangleDelete(item[0])} id="delete">Delete</button> 
+                    </div>
+                ))
+            }
+              
+                
+        </div>
+        </div>
+           
+        )
+    }
+    
+
+
+
+
+
+
+
+    //feedback Form 
+     function FeedbackForm() {
+      const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        feedback: "",
+      });
+      const [allData,setAllData]=useState([])
+
+
+
+      const handleChange = (e) => {
+        e.preventDefault();
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+
+      };
+
+
+      const handleSubmit = async(e) => {
+        e.preventDefault();
+        let res = await fetch(
+          "https://feedback-board-51848-default-rtdb.firebaseio.com/feedback.json",
+          {
+            method: "POST",
+            body: JSON.stringify(formData),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            alert("Feedback Submitted Successfully");
+          }).catch(err=>{
+            alert(err);
+          })
+
+
+
+        setFormData({
+          name: "",
+          email: "",
+          feedback: "",
+        });
+
+      };
+
+      return (
+
+      <div id="container1">
+        <form action="" onSubmit={handleSubmit}>
+          <h1>FeedBack Form</h1>
+          <label>
+            Name:
+            <br/>
+            <input
+              type="text"
+              placeholder="Enter Your Name"
+              name="name"
+              onChange={handleChange}
+              value={formData.name}
+              required
+            />
+          </label>
+
+          <label>
+            Email:
+            <br/>
+            <input
+              type="email"
+              placeholder="Enter Your Email"
+              name="email"
+              onChange={handleChange}
+              value={formData.email}
+              required
+            />
+          </label>
+
+          <label>
+            FeedBack:
+            <br/>
+            <textarea
+              name="feedback"
+              id=""
+              cols="17"
+              rows="10"
+              onChange={handleChange}
+              value={formData.feedback}
+              required
+            ></textarea>
+          </label>
+          <button type="submit">Submit</button>
+        </form>
+
+      </div>
+       
+      );
+    }
+
+    // main component
+    function App() {
+      return (
+        <>
+          <Header />
+          <FeedbackForm />
+          <FeedbackItem />
+        </>
+      );
+    }
+
+    let root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</html>
